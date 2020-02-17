@@ -21,7 +21,7 @@ public class AdaptadorPaises extends ArrayAdapter<Paises> {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View item = inflater.inflate(R.layout.ly_items, null);
         TextView lblTitulo = (TextView)item.findViewById(R.id.txt_titulo);
-        lblTitulo.setText(getItem(position).getTitulo());
+        lblTitulo.setText(getItem(position).getNombre());
         ImageView imageView = (ImageView)item.findViewById(R.id.imageView);
         imageView.setTag(getItem(position).getUrlPdf());
         Glide.with(this.getContext()).load(getItem(position).getUrlPdf())

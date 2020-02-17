@@ -3,6 +3,7 @@ package com.example.revistasuteq;
 import android.Manifest;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -42,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements Asynchtask, Adapt
         lstOpciones.setOnItemClickListener(this);
         getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-        //registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
     //public ArrayList<HashMap<String, String>> articuloslist = new ArrayList<>();
@@ -56,46 +56,39 @@ public class MainActivity extends AppCompatActivity implements Asynchtask, Adapt
             String clave =(String)iteracion.next();
             JSONObject paise = resultado.getJSONObject(clave);
             Paises pais= new Paises();
-            pais.setTitulo(paise.getString("Name"));
+            pais.setNombre(paise.getString("Name"));
             JSONObject codigopais = paise.getJSONObject("CountryCodes");
+            pais.setCodigo(codigopais.getString("iso2"));
             pais.setUrlPdf("http://www.geognos.com/api/en/countries/flag/"+codigopais.getString("iso2")+".png");
             paises.add(pais);
         }
         AdaptadorPaises adaptadorPaises = new AdaptadorPaises(this, paises);
         lstOpciones.setAdapter(adaptadorPaises);
+        lstOpciones.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, InformacionPais.class);
+                Bundle bundle = new Bundle();
+                bundle.putString("codISO", ((Paises)parent.getItemAtPosition(position)).getCodigo());
+                intent.putExtras(bundle);
+                startActivity(intent);
+            }
+        });
 
     }
 
     private DownloadManager.Request request;
-    //long downloadID ;
-
-   /* private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //Fetching the download id received with the broadcast
-            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-            //Checking if the received broadcast is for our enqueued download by matching download id
-            if (downloadID == id) {
-                Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };*/
-    /*@Override
-    public void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(onDownloadComplete);
-    }*/
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         //Toast.makeText(this.getApplicationContext(),((Paises)parent.getItemAtPosition(position)).getUrlPdf(),Toast.LENGTH_LONG).show();
         request = new DownloadManager.Request(Uri.parse(((Paises)parent.getItemAtPosition(position)).getUrlPdf()));
-        request.setDescription("PDF	Paper");
-        request.setTitle("Pdf Artcilee");
+        request.setDescription("Imagen Paises");
+        request.setTitle("Imagenes de paises");
         if (Build.VERSION.SDK_INT >=	Build.VERSION_CODES.HONEYCOMB)	{
             request.allowScanningByMediaScanner();
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         }
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,	"filedownload.pdf");
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,	"filedownload.png");
         DownloadManager manager	=	(DownloadManager)this.getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
         try	{
             manager.enqueue(request);
@@ -104,8 +97,6 @@ public class MainActivity extends AppCompatActivity implements Asynchtask, Adapt
                     e.getMessage(),
                     Toast.LENGTH_LONG).show();
         }
-        //DownloadManager downloadManager= (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        //downloadID= downloadManager.enqueue(request);// enqueue puts the download request in the queue.
 
     }
 
